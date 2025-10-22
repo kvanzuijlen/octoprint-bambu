@@ -25,6 +25,10 @@ jobs:
         run: |
           OCTOPRINT_VERSION=$(grep -o 'octoprint/octoprint:[^@]\+' Dockerfile | cut -d':' -f2)
           echo "OctoPrint Version: $OCTOPRINT_VERSION"
+          if [ -z "$OCTOPRINT_VERSION" ]; then 
+            echo "Failed to extract OctoPrint version" >&2
+            exit 1
+          fi
           echo "octoprint_version=$OCTOPRINT_VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Set up Docker Buildx
@@ -78,6 +82,10 @@ jobs:
         run: |
           OCTOPRINT_VERSION=$(grep -o 'octoprint/octoprint:[^@]\+' Dockerfile | cut -d':' -f2)
           echo "OctoPrint Version: $OCTOPRINT_VERSION"
+          if [ -z "$OCTOPRINT_VERSION" ]; then 
+            echo "Failed to extract OctoPrint version" >&2
+            exit 1
+          fi
           echo "octoprint_version=$OCTOPRINT_VERSION" >> "$GITHUB_OUTPUT"
   
       - name: Set up Docker Buildx
