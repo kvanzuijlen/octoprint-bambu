@@ -10,7 +10,7 @@ on:
 
 jobs:
   build-and-publish:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     permissions:
       contents: write
       packages: write
@@ -73,7 +73,7 @@ jobs:
           generate_release_notes: true
   
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
     if: ${{ github.event_name == 'pull_request' }}
