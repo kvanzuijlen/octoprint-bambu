@@ -1,0 +1,19 @@
+{
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+  extends: [
+    "config:best-practices",
+  ],
+  enabledManagers: ["regex"],
+  autoApprove: true,
+  automerge: true,
+  automergeType: "pr",
+  customManagers: [
+    {
+      customType: "regex",
+      matchStrings: [
+        "# renovate: datasource=(?<datasource>[\\w-]+) currentValue=(?<currentValue>\\w+)\\s.+git\\+(?<depName>[\\w:/\\.-]+)@(?<currentDigest>\\w+)",
+      ],
+      managerFilePatterns: ["Dockerfile"],
+    },
+  ],
+}
