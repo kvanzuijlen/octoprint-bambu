@@ -1,0 +1,74 @@
+name: Publish Docker image to GHCR
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+      packages: write
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+
+    steps: &steps
+      - name: Checkout repository
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+
+      - name: Extract OctoPrint version from Dockerfile
+        id: get_version
+        run: |
+          OCTOPRINT_VERSION=$(grep -o 'octoprint/octoprint:[^@]\+' Dockerfile | cut -d':' -f2)
+          echo "OctoPrint Version: $OCTOPRINT_VERSION"
+          echo "octoprint_version=$OCTOPRINT_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
+        with:
+          context: .
+          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+          tags: |
+            ghcr.io/kvanzuijlen/octoprint-bambu:${{ steps.get_version.outputs.octoprint_version }}-${{ github.run_number }}
+            ghcr.io/kvanzuijlen/octoprint-bambu:latest
+          labels: |
+            org.opencontainers.image.source=${{ github.event.repository.html_url }}
+            org.opencontainers.image.created=${{ github.event.repository.created_at }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.version=${{ steps.get_version.outputs.octoprint_version }}-${{ github.run_number }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@6da8fa9354ddfdc4aeace5fc48d7f679b5214090 # v2.4.1
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        with:
+          tag_name: v${{ steps.get_version.outputs.octoprint_version }}-${{ github.run_number }}
+          name: OctoPrint Bambu - ${{ steps.get_version.outputs.octoprint_version }}-${{ github.run_number }}
+          body: |
+            Docker image for OctoPrint Bambu based on OctoPrint version ${{ steps.get_version.outputs.octoprint_version }}.
+            Build number: ${{ github.run_number }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+  
+  build:
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+    if: ${{ github.event_name == 'pull_request' }}
+  
+  steps: *steps
