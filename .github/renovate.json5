@@ -3,9 +3,6 @@
   extends: [
     'config:best-practices',
   ],
-  enabledManagers: [
-    'custom.regex',
-  ],
   autoApprove: true,
   automerge: true,
   automergeType: 'pr',
